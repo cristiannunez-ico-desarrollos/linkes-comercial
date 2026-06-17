@@ -791,10 +791,11 @@ async function reloadData(){
     // Normalizar nombres de etapas antiguas por si quedan registros viejos
     const stageNorm={'Estudios en desarrollo':'En desarrollo','Propuesta enviada':'Enviada','Adjudicado':'Adjudicada','Cliente no adjudica':'No adjudicada','Perdido':'Perdida'};
     if(rP.ok)projects=(rP.data||[]).map(p=>({...p,segment:mapSeg(p.segment,p.name),venta:+p.venta||0,costo:+p.costo||0,margen_pct:+p.margen_pct||0,plazo:+p.plazo||3,dot:+p.dot||0,dot_tec:+p.dot_tec||0,dot_adm:+p.dot_adm||0,vehiculos:+p.vehiculos||0,mo:+p.mo||0,boleta_pct:p.boleta_pct?+p.boleta_pct:null,isDraft:String(p.isDraft)==='true',stage:stageNorm[p.stage]||p.stage||'En desarrollo',costs:{
-      mo: +p.costs_mo||0,
-      mat:(+p.costs_mat||0)+(+p.costs_unif||0)+(+p.costs_epp||0)+(+p.costs_herr||0),
-      sub:+p.costs_sub||0,
-      ot: (+p.costs_ot||0)+(+p.costs_veh||0)+(+p.costs_com||0)+(+p.costs_ti||0)+(+p.costs_via||0)+(+p.costs_dep||0)
+      // Agrupación K/mes (alimenta la tabla Detalle de propuestas):
+      mo:  (+p.costs_mo||0)+(+p.costs_unif||0),                                                                                   // costs_mo + costs_unif
+      mat: (+p.costs_mat||0),                                                                                                     // costs_mat
+      sub: (+p.costs_sub||0),                                                                                                     // costs_sub
+      ot:  (+p.costs_epp||0)+(+p.costs_herr||0)+(+p.costs_veh||0)+(+p.costs_com||0)+(+p.costs_ti||0)+(+p.costs_via||0)+(+p.costs_ot||0)+(+p.costs_dep||0)  // resto
     },filename:p.filename||((p.code?p.code+' ':'')+p.name).trim()}));
     if(rU.ok)users=rU.data||[];
     if(rF.ok)aprFolders=rF.data||[];
@@ -1484,14 +1485,30 @@ function parseWb(wb,fn){
     let venta=0,costo=0,mgPct=0,mo=0,bPct=null,bBase=null;
     let dot=0,dotTec=0,dotAdm=0,vehiculos=0;
     const costs={mo:0,mat:0,sub:0,ot:0};
+    // 12 costos granulares (se persisten 1:1 en columnas costs_mo..costs_dep)
+    const g={mo:0,unif:0,epp:0,herr:0,mat:0,veh:0,com:0,ti:0,sub:0,via:0,ot:0,dep:0};
     if(cs){
       const C=XLSX.utils.sheet_to_json(cs,{header:1,raw:true,defval:''});
       // ── Costos desde celdas fijas col H (índice 7) ──
       const getH=row=>{ const v=C[row]?C[row][7]:null; return typeof v==='number'&&v>0?v:0; };
-      costs.mo  = Math.round(getH(25));
-      costs.mat = Math.round(getH(26)+getH(27)+getH(28)+getH(29));
-      costs.sub = Math.round(getH(33));
-      costs.ot  = Math.round(getH(30)+getH(31)+getH(32)+getH(34)+getH(35)+getH(36));
+      // Mapeo celda→columna (getH(n) lee la fila n+1 de la planilla):
+      g.mo   = Math.round(getH(25)); // costs_mo   H26
+      g.unif = Math.round(getH(26)); // costs_unif H27
+      g.epp  = Math.round(getH(27)); // costs_epp  H28
+      g.herr = Math.round(getH(28)); // costs_herr H29
+      g.mat  = Math.round(getH(29)); // costs_mat  H30
+      g.veh  = Math.round(getH(30)); // costs_veh  H31
+      g.com  = Math.round(getH(31)); // costs_com  H32
+      g.ti   = Math.round(getH(32)); // costs_ti   H33
+      g.sub  = Math.round(getH(33)); // costs_sub  H34
+      g.via  = Math.round(getH(34)); // costs_via  H35
+      g.ot   = Math.round(getH(35)); // costs_ot   H36
+      g.dep  = Math.round(getH(36)); // costs_dep  H37
+      // Buckets K/mes (nueva agrupación):
+      costs.mo  = g.mo + g.unif;
+      costs.mat = g.mat;
+      costs.sub = g.sub;
+      costs.ot  = g.epp + g.herr + g.veh + g.com + g.ti + g.via + g.ot + g.dep;
       // ── Venta, costo, margen, MO%, boleta ──
       C.forEach((row)=>{
         const line=row.map(c=>String(c||'')).join('\t');
@@ -1584,9 +1601,9 @@ function parseWb(wb,fn){
       vehiculos:Math.round(vehiculos)||0,
       mo:+mo.toFixed(1),
       costs:{mo:Math.round(costs.mo),mat:Math.round(costs.mat),sub:Math.round(costs.sub),ot:Math.round(costs.ot)},
-      costs_mo:Math.round(costs.mo), costs_unif:0, costs_epp:0, costs_herr:0,
-      costs_mat:Math.round(costs.mat), costs_veh:0, costs_com:0, costs_ti:0,
-      costs_sub:Math.round(costs.sub), costs_via:0, costs_ot:Math.round(costs.ot), costs_dep:0,
+      costs_mo:g.mo, costs_unif:g.unif, costs_epp:g.epp, costs_herr:g.herr,
+      costs_mat:g.mat, costs_veh:g.veh, costs_com:g.com, costs_ti:g.ti,
+      costs_sub:g.sub, costs_via:g.via, costs_ot:g.ot, costs_dep:g.dep,
       fecha_estudio:fEst, fecha_inicio_op:fOp, fecha_term:fTerm,
       boleta_pct:bPct||'', boleta_base:bBase||'', notas:'', isDraft:'false',
       mo_ratios:JSON.stringify(moRatios)
