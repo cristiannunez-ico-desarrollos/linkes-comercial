@@ -634,7 +634,7 @@ function callRead(action,params={}){
 }
 
 // ══ CONSTANTES ════════════════════════════════════════════════
-const ROLES={admin:{label:'Administrador',color:'#555'},resp:{label:'Responsable del Propuesta',color:'#1a6abf'},jefe:{label:'Jefe del Propuesta',color:'#9b3fc8'},gops:{label:'Gerente de Operaciones',color:'#e05d1a'},gg:{label:'Gerente General',color:'#c8222e'},viewer:{label:'Solo lectura',color:'#8a94b0'}};
+const ROLES={admin:{label:'Administrador',color:'#555'},resp:{label:'Responsable del Propuesta',color:'#1a6abf'},jefe:{label:'Jefe del Propuesta',color:'#9b3fc8'},gops:{label:'Gerente/Subgerente de Operaciones',color:'#e05d1a'},gg:{label:'Gerente General',color:'#c8222e'},viewer:{label:'Solo lectura',color:'#8a94b0'}};
 const APR_ROLES=['resp','jefe','gops','gg'];
 const APR_TH={resp:'r-resp',jefe:'r-jefe',gops:'r-gops',gg:'r-gg'};
 const STAGES=['En desarrollo','Enviada','Adjudicada','No adjudicada','Perdida'];
@@ -651,6 +651,7 @@ let currentUser=null,projects=[],users=[],aprFolders=[],approvals={};
 const charts={};
 function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 function num(n,d=0){return(+n||0).toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function propVer(p){const m=String(p.filename||'').match(/(?:^|\s)V(\d+)/i);return m?'V'+parseInt(m[1],10)+' ':'';}
 function fmt(d){if(!d)return'—';try{const dt=new Date(d);if(isNaN(dt))return'—';return dt.toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return'—';}}
 function fmtS(d){if(!d)return'—';try{const dt=new Date(d);if(isNaN(dt))return'—';return dt.toLocaleDateString('es-CL',{month:'short',year:'numeric'});}catch(e){return'—';}}
 function xlDate(s){if(!s||isNaN(s))return null;const d=new Date(Math.round((+s-25569)*864e5));return isNaN(d.getTime())?null:d.toISOString().split('T')[0];}
@@ -998,7 +999,7 @@ function renderCRM(){
         const cls=SEG_CLS[p.segment]||'otros';
         const da=editable?`draggable="true" ondragstart="dragStart(event,'${p.id}')"`:'';
         return`<div class="crm-card ${cls}${p.isDraft?' draft':''}" ${da} onclick="openProjModal('${p.id}')">
-          <div class="crm-card-name">${p.isDraft?'◦ ':''}${p.name}</div>
+          <div class="crm-card-name">${p.isDraft?'◦ ':''}${propVer(p)}${p.name}</div>
           <div class="crm-card-seg" style="color:${SEG_COL[p.segment]}">${p.segment}</div>
           <div class="crm-card-val">$${num(p.venta)}K<span style="font-size:10px;color:#8a94b0">/mes</span></div>
           <div class="crm-card-meta">${p.plazo}a · ${Math.round(p.dot)} pers.</div>
