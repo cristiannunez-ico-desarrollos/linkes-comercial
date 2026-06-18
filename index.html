@@ -535,6 +535,13 @@ textarea.fi{resize:none;min-height:60px;}
               <div class="fg" style="flex:1;min-width:160px"><label class="fl">Rol</label><select class="fs" id="nu_rol"><option value="admin">Administrador</option><option value="resp">Responsable Propuesta</option><option value="jefe">Jefe Propuesta</option><option value="gops">Gerente Operaciones</option><option value="gg">Gerente General</option><option value="viewer">Solo lectura</option></select></div>
               <button class="btn btn-primary btn-sm" onclick="addUser()">+ Agregar</button>
             </div>
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:-4px 0 14px 2px">
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3)">Roles de aprobación adicionales</span>
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="nu_extra_resp"> Responsable</label>
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="nu_extra_jefe"> Jefe</label>
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="nu_extra_gops"> G./Subg. Operaciones</label>
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="nu_extra_gg"> Gerente General</label>
+            </div>
             <div class="user-list" id="userList"></div>
           </div>
           <div class="ap-sec" id="adm-carpetas">
@@ -582,6 +589,14 @@ textarea.fi{resize:none;min-height:60px;}
   <div class="mbody"><input type="hidden" id="eu_id">
     <div class="fr2"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="eu_name"></div><div class="fg"><label class="fl">Usuario</label><input class="fi" id="eu_user"></div></div>
     <div class="fr2"><div class="fg"><label class="fl">Nueva contraseña</label><input class="fi" type="password" id="eu_pass" placeholder="vacío = sin cambio"></div><div class="fg"><label class="fl">Rol</label><select class="fs" id="eu_rol"><option value="admin">Administrador</option><option value="resp">Responsable Propuesta</option><option value="jefe">Jefe Propuesta</option><option value="gops">Gerente Operaciones</option><option value="gg">Gerente General</option><option value="viewer">Solo lectura</option></select></div></div>
+    <div class="fg"><label class="fl">Roles de aprobación adicionales</label>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;padding-top:5px">
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="eu_extra_resp"> Responsable</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="eu_extra_jefe"> Jefe</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="eu_extra_gops"> G./Subg. Operaciones</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="eu_extra_gg"> Gerente General</label>
+      </div>
+    </div>
     <div class="mfooter"><button class="btn btn-secondary" onclick="document.getElementById('editUserBg').classList.remove('open')">Cancelar</button><button class="btn btn-primary" onclick="saveEditUser()">Guardar</button></div>
   </div></div>
 </div>
@@ -1616,14 +1631,20 @@ function parseWb(wb,fn){
 function renderUserList(){
   document.getElementById('userList').innerHTML=users.filter(u=>String(u.activo)!=='false').map(u=>{
     const rc=ROLES[u.role]?.color||'#555',ini=u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return`<div class="user-row"><div class="u-left"><div class="u-av" style="background:${rc}">${ini}</div><div><div style="font-size:12px;font-weight:600;color:var(--navy)">${u.name} <span style="font-size:10px;color:var(--text3)">@${u.username}</span></div><div style="font-size:10px;color:${rc}">${ROLES[u.role]?.label||u.role}</div></div></div><div class="u-right"><button class="bico edit" onclick="openEditUser('${u.id}')">✏</button>${u.id!=='u_admin'?`<button class="bico" onclick="delUser('${u.id}')">🗑</button>`:''}</div></div>`;
+    const extra=(u.roles_extra||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const extraHtml=extra.map(r=>`<span style="font-size:9px;background:${(ROLES[r]?.color||'#888')}1f;color:${ROLES[r]?.color||'#888'};padding:1px 5px;border-radius:4px;margin-left:4px;white-space:nowrap">+ ${ROLES[r]?.label||r}</span>`).join('');
+    return`<div class="user-row"><div class="u-left"><div class="u-av" style="background:${rc}">${ini}</div><div><div style="font-size:12px;font-weight:600;color:var(--navy)">${u.name} <span style="font-size:10px;color:var(--text3)">@${u.username}</span></div><div style="font-size:10px;color:${rc}">${ROLES[u.role]?.label||u.role}${extraHtml}</div></div></div><div class="u-right"><button class="bico edit" onclick="openEditUser('${u.id}')">✏</button>${u.id!=='u_admin'?`<button class="bico" onclick="delUser('${u.id}')">🗑</button>`:''}</div></div>`;
   }).join('')||'<div style="color:var(--text3);font-size:12px;padding:10px">Sin usuarios</div>';
 }
+const EXTRA_ROLES=['resp','jefe','gops','gg'];
+function getExtraRoles(prefix){return EXTRA_ROLES.filter(r=>document.getElementById(prefix+'_extra_'+r)?.checked).join(',');}
+function setExtraRoles(prefix,csv){const set=new Set(String(csv||'').split(',').map(s=>s.trim()));EXTRA_ROLES.forEach(r=>{const el=document.getElementById(prefix+'_extra_'+r);if(el)el.checked=set.has(r);});}
 async function addUser(){
   const name=document.getElementById('nu_name').value.trim(),username=document.getElementById('nu_user').value.trim().toLowerCase(),pass=document.getElementById('nu_pass').value,role=document.getElementById('nu_rol').value;
   if(!name||!username||!pass){notify('⚠ Completa todos los campos');return;}
-  const res=await callRead('addUsuario',{username,pass,name,role});
-  if(res.ok){users.push({id:res.id,username,name,role,activo:'true'});renderUserList();renderAsigContent();notify(`✓ "${name}" creado ☁`);['nu_name','nu_user','nu_pass'].forEach(id=>document.getElementById(id).value='');}
+  const roles_extra=getExtraRoles('nu');
+  const res=await callRead('addUsuario',{username,pass,name,role,roles_extra});
+  if(res.ok){users.push({id:res.id,username,name,role,roles_extra,activo:'true'});renderUserList();renderAsigContent();notify(`✓ "${name}" creado ☁`);['nu_name','nu_user','nu_pass'].forEach(id=>document.getElementById(id).value='');setExtraRoles('nu','');}
   else notify('⚠ '+(res.error||'Error'));
 }
 async function delUser(id){
@@ -1632,12 +1653,13 @@ async function delUser(id){
   if(res.ok){const u=users.find(x=>x.id===id);if(u)u.activo='false';renderUserList();notify('🗑 Usuario desactivado');}
   else notify('⚠ '+(res.error||'Error'));
 }
-function openEditUser(id){const u=users.find(x=>x.id===id);if(!u)return;document.getElementById('eu_id').value=id;document.getElementById('eu_name').value=u.name;document.getElementById('eu_user').value=u.username;document.getElementById('eu_pass').value='';document.getElementById('eu_rol').value=u.role;document.getElementById('editUserBg').classList.add('open');}
+function openEditUser(id){const u=users.find(x=>x.id===id);if(!u)return;document.getElementById('eu_id').value=id;document.getElementById('eu_name').value=u.name;document.getElementById('eu_user').value=u.username;document.getElementById('eu_pass').value='';document.getElementById('eu_rol').value=u.role;setExtraRoles('eu',u.roles_extra);document.getElementById('editUserBg').classList.add('open');}
 async function saveEditUser(){
   const id=document.getElementById('eu_id').value,name=document.getElementById('eu_name').value,role=document.getElementById('eu_rol').value,pass=document.getElementById('eu_pass').value;
-  const params={id,name,role};if(pass)params.pass=pass;
+  const roles_extra=getExtraRoles('eu');
+  const params={id,name,role,roles_extra};if(pass)params.pass=pass;
   const res=await callRead('editUsuario',params);
-  if(res.ok){const idx=users.findIndex(u=>u.id===id);if(idx>=0){users[idx].name=name;users[idx].role=role;}renderUserList();document.getElementById('editUserBg').classList.remove('open');notify('✓ Usuario actualizado');}
+  if(res.ok){const idx=users.findIndex(u=>u.id===id);if(idx>=0){users[idx].name=name;users[idx].role=role;users[idx].roles_extra=roles_extra;}renderUserList();renderAsigContent();document.getElementById('editUserBg').classList.remove('open');notify('✓ Usuario actualizado');}
   else notify('⚠ '+(res.error||'Error'));
 }
 
@@ -1683,7 +1705,7 @@ function renderAsigContent(){
     html+=`<div style="margin-bottom:14px;background:var(--light);border-radius:var(--r);padding:13px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">📁 ${f.name}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">`;
     APR_ROLES.forEach(rol=>{
       const cur=asig[rol]||'',rc=ROLES[rol]?.color;
-      const rUsers=users.filter(u=>(u.role===rol||u.role==='admin')&&String(u.activo)!=='false');
+      const rUsers=users.filter(u=>(u.role===rol||u.role==='admin'||(u.roles_extra||'').split(',').map(s=>s.trim()).includes(rol))&&String(u.activo)!=='false');
       html+=`<div class="fg"><label class="fl" style="color:${rc}">${ROLES[rol]?.label}</label><select class="fs" onchange="setAsig('${f.id}','${rol}',this.value)" style="border-color:${cur?rc:''};font-size:12px"><option value="">— Sin asignar —</option>${rUsers.map(u=>`<option value="${u.id}"${u.id===cur?' selected':''}>${u.name}</option>`).join('')}</select></div>`;
     });
     html+=`</div></div>`;
