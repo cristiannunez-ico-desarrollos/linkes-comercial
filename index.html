@@ -1212,8 +1212,9 @@ function renderAprobaciones(){
     });
     body+='</tr>';
     (f.fichas||[]).forEach(fi=>{
-      const dlBtn=fi.dlUrl
-        ?`<a href="${fi.dlUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#e8f0fb;color:#1a6abf;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;text-decoration:none;margin-left:6px" title="Descargar ${fi.fileName||fi.name}">⬇ Descargar</a>`
+      const puedeDescargar=isAdmin()||APR_ROLES.some(r=>asig[r]===currentUser.id);
+      const dlBtn=(fi.fileId&&puedeDescargar)
+        ?`<a href="javascript:void(0)" onclick="descargarFicha('${fi.fileId}',this);return false" style="display:inline-flex;align-items:center;gap:4px;background:#e8f0fb;color:#1a6abf;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;text-decoration:none;margin-left:6px" title="Descargar ${fi.fileName||fi.name}">⬇ Descargar</a>`
         :'';
       body+=`<tr class="tr-ficha" id="fi-${f.id}-${fi.id}"><td style="padding:9px 15px 9px 36px;font-size:12px;color:var(--text2)"><div class="fi-name"><span>📄</span>${fi.name}<span class="fi-v">xlsm</span>${dlBtn}</div></td>`;
       APR_ROLES.forEach(r=>{
@@ -1716,6 +1717,21 @@ async function setAsig(fid,rol,uid){
   const res=await callRead('setAsignacion',{folderId:fid,rol,userId:uid});
   if(res.ok){const f=aprFolders.find(x=>x.id===fid);if(f){if(!f.asignaciones)f.asignaciones={};if(uid)f.asignaciones[rol]=uid;else delete f.asignaciones[rol];}renderAprobaciones();notify('✓ Asignación guardada ☁');}
   else notify('⚠ '+(res.error||'Error'));
+}
+async function descargarFicha(fileId,el){
+  const txt=el?el.innerHTML:'';if(el){el.style.pointerEvents='none';el.innerHTML='⏳ Descargando…';}
+  try{
+    const res=await callRead('downloadFicha',{fileId});
+    if(!res.ok){notify('⛔ '+(res.error||'No se pudo descargar'));return;}
+    const bin=atob(res.base64),len=bin.length,bytes=new Uint8Array(len);
+    for(let i=0;i<len;i++)bytes[i]=bin.charCodeAt(i);
+    const blob=new Blob([bytes],{type:res.mimeType||'application/octet-stream'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=res.fileName||'ficha.xlsm';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    notify('✓ Ficha descargada');
+  }catch(e){notify('⚠ Error al descargar la ficha');}
+  finally{if(el){el.style.pointerEvents='';el.innerHTML=txt;}}
 }
 
 // ══ ADMIN — AUDITORÍA ═════════════════════════════════════════
