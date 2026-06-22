@@ -412,7 +412,7 @@ textarea.fi{resize:none;min-height:60px;}
         </div>
         <div class="panel"><div class="tbl-wrap"><table>
           <thead><tr id="tblTotals" style="background:var(--light);"></tr><tr>
-            <th onclick="sortTable('name')" style="cursor:pointer;white-space:nowrap">Propuesta <span id="srt-name">⇅</span></th>
+            <th onclick="sortTable('name')" style="cursor:pointer;white-space:nowrap">Propuesta <span id="srt-name">▼</span></th>
             <th onclick="sortTable('segment')" style="cursor:pointer;white-space:nowrap">Segmento <span id="srt-segment">⇅</span></th>
             <th style="text-align:right;cursor:pointer;color:#2d7d55" onclick="sortTable('venta')">Venta/mes <span id="srt-venta">⇅</span></th>
             <th style="text-align:right;color:#c8222e">MO K/mes</th>
@@ -901,7 +901,7 @@ function renderSegmentos(){
 
 // ══ TABLA ══════════════════════════════════════════════════════
 // ══ SORT ══════════════════════════════════════════════════════
-let sortCol='venta', sortDir=-1;
+let sortCol='name', sortDir=-1;
 
 function sortTable(col){
   if(sortCol===col) sortDir*=-1;
