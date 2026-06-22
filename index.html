@@ -1207,8 +1207,9 @@ function renderAprobaciones(){
     APR_ROLES.forEach(r=>{
       const key=`${f.id}_folder_${r}`,apr=approvals[key];
       const aUid=asig[r],aUser=users.find(u=>u.id===aUid);
-      const isMe=aUid===currentUser.id,canApr=isMe&&!apr&&!isAdmin();
-      body+=`<td class="td-chk">${renderChkCell(f.id,'folder',r,apr,aUser,canApr,f.name)}</td>`;
+      const isMe=aUid===currentUser.id,prevOk=prevAprobados(asig,`${f.id}_folder`,r);
+      const canApr=isMe&&!apr&&!isAdmin()&&prevOk,blocked=isMe&&!apr&&!isAdmin()&&!prevOk;
+      body+=`<td class="td-chk">${renderChkCell(f.id,'folder',r,apr,aUser,canApr,f.name,blocked)}</td>`;
     });
     body+='</tr>';
     (f.fichas||[]).forEach(fi=>{
@@ -1220,8 +1221,9 @@ function renderAprobaciones(){
       APR_ROLES.forEach(r=>{
         const key=`${f.id}_${fi.id}_${r}`,apr=approvals[key];
         const aUid=asig[r],aUser=users.find(u=>u.id===aUid);
-        const isMe=aUid===currentUser.id,canApr=isMe&&!apr&&!isAdmin();
-        body+=`<td class="td-chk">${renderChkCell(f.id,fi.id,r,apr,aUser,canApr,fi.name+' — '+f.name)}</td>`;
+        const isMe=aUid===currentUser.id,prevOk=prevAprobados(asig,`${f.id}_${fi.id}`,r);
+        const canApr=isMe&&!apr&&!isAdmin()&&prevOk,blocked=isMe&&!apr&&!isAdmin()&&!prevOk;
+        body+=`<td class="td-chk">${renderChkCell(f.id,fi.id,r,apr,aUser,canApr,fi.name+' — '+f.name,blocked)}</td>`;
       });
       body+='</tr>';
     });
@@ -1255,11 +1257,18 @@ function renderAprobaciones(){
   }
 }
 
-function renderChkCell(fid,fichaId,rol,apr,aUser,canApr,label){
+function prevAprobados(asig,keyPrefix,rol){
+  // true si todos los niveles ANTERIORES que estén asignados ya fueron aprobados
+  const i=APR_ROLES.indexOf(rol);
+  for(let k=0;k<i;k++){const rp=APR_ROLES[k];if(asig[rp]&&!approvals[`${keyPrefix}_${rp}`])return false;}
+  return true;
+}
+function renderChkCell(fid,fichaId,rol,apr,aUser,canApr,label,blocked){
   const lbl=label.replace(/'/g,"\\'");
   if(!aUser)return`<div style="font-size:10px;color:var(--text3)">Sin asignar</div>`;
   if(apr)return`<div class="chk done" title="Aprobado por ${apr.name}"></div><div class="chk-meta"><div style="font-weight:600;color:var(--text2)">${apr.name.split(' ')[0]}</div><div>${apr.date}</div></div>`;
   if(canApr)return`<div class="chk" style="border-color:var(--orange)" onclick="openConfirm('${fid}','${fichaId}','${rol}','${lbl}')"></div><div class="chk-meta" style="color:var(--orange);font-weight:600">Tu firma</div>`;
+  if(blocked)return`<div class="chk locked" title="Debe aprobar primero el nivel anterior"></div><div class="chk-meta" style="color:var(--text3)">⏳ Espera nivel previo</div>`;
   return`<div class="chk locked" title="${aUser.name} — pendiente"></div><div class="chk-meta">${aUser.name.split(' ')[0]}</div>`;
 }
 function toggleAprFolder(fid){const t=document.getElementById('ft-'+fid);const rows=document.querySelectorAll(`[id^="fi-${fid}-"]`);const open=t.classList.contains('open');t.classList.toggle('open',!open);rows.forEach(r=>r.classList.toggle('visible',!open));}
