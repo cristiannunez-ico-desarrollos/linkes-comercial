@@ -378,12 +378,12 @@ textarea.fi{resize:none;min-height:60px;}
           <option value="Grandes Ctas">Grandes Ctas</option>
           <option value="Otros">Otros</option>
         </select>
+        <button id="resDevBtn" class="tp-sel" onclick="toggleResDev()" style="display:none;cursor:pointer;white-space:nowrap">&#9723; En desarrollo</button>
       </div>
     </div>
     <div class="content">
       <!-- RESUMEN -->
       <div class="page active" id="pg-resumen">
-        <div id="resDevWrap" style="display:none;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:12px;color:var(--text3)">Vista admin</span><button id="resDevBtn" class="btn btn-secondary btn-sm" onclick="toggleResDev()">&#9723; Incluir &quot;En desarrollo&quot;</button></div>
         <div class="kpi-row" id="kpiRow"></div>
         <div class="row2">
           <div class="panel"><div class="ph"><span class="ph-title">Venta mensual por propuesta enviada</span><span class="ph-sub">top 10 · KCLP</span></div><div class="pb"><div style="position:relative;height:270px"><canvas id="cBar"></canvas></div></div></div>
@@ -798,7 +798,7 @@ function applyRole(){
   if(btnDraft) btnDraft.style.display=isAdmin()?'block':'none';
   const btnRecalc=document.getElementById('btnRecalc');
   if(btnRecalc) btnRecalc.style.display=isAdmin()?'block':'none';
-  const rdw=document.getElementById('resDevWrap'); if(rdw) rdw.style.display=isAdmin()?'flex':'none';
+  const rdb=document.getElementById('resDevBtn'); if(rdb) rdb.style.display=isAdmin()?'inline-block':'none';
   if(!canEdit()) document.getElementById('crmHint').textContent='Solo lectura';
 }
 
@@ -859,12 +859,11 @@ function getFP(){const s=(document.getElementById('search')?.value||'').toLowerC
 function toggleResDev(){
   showEnDesarrollo=!showEnDesarrollo;
   const b=document.getElementById('resDevBtn');
-  if(b){b.textContent=(showEnDesarrollo?'\u2611':'\u25FB')+' Incluir "En desarrollo"';b.style.background=showEnDesarrollo?'var(--orange)':'';b.style.color=showEnDesarrollo?'#fff':'';b.style.borderColor=showEnDesarrollo?'var(--orange)':'';}
+  if(b){b.textContent=(showEnDesarrollo?'\u2611':'\u25FB')+' En desarrollo';b.style.background=showEnDesarrollo?'var(--orange)':'';b.style.color=showEnDesarrollo?'#fff':'';b.style.borderColor=showEnDesarrollo?'var(--orange)':'';}
   renderKPIs();renderResumen();
 }
 function renderKPIs(){
-  const _stK=showEnDesarrollo?['Enviada','En desarrollo']:['Enviada'];
-  const fp=getFP().filter(p=>!p.isDraft&&_stK.includes(p.stage));
+  const fp=getFP().filter(p=>(!p.isDraft&&p.stage==='Enviada')||(showEnDesarrollo&&p.stage==='En desarrollo'));
   const suf=showEnDesarrollo?'propuestas (env.+desarr.)':'propuestas enviadas';
   const tv=fp.reduce((a,p)=>a+p.venta,0),tc=fp.reduce((a,p)=>a+p.costo,0);
   const mg=tv?((tv-tc)/tv*100):0,dot=fp.reduce((a,p)=>a+p.dot,0);
@@ -879,7 +878,7 @@ function renderKPIs(){
 
 // ══ RESUMEN ════════════════════════════════════════════════════
 function renderResumen(){
-  const fp=getFP().filter(p=>!p.isDraft&&(showEnDesarrollo?['Enviada','En desarrollo']:['Enviada']).includes(p.stage));
+  const fp=getFP().filter(p=>(!p.isDraft&&p.stage==='Enviada')||(showEnDesarrollo&&p.stage==='En desarrollo'));
   const top=[...fp].sort((a,b)=>b.venta-a.venta).slice(0,10);
   dc('cBar');charts.cBar=new Chart(document.getElementById('cBar'),{type:'bar',data:{labels:top.map(p=>p.name.length>22?p.name.slice(0,22)+'…':p.name),datasets:[{data:top.map(p=>p.venta),backgroundColor:top.map(p=>SEG_COL[p.segment]||'#8a94b0'),borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.raw.toLocaleString('es-CL')} KCLP`}}},scales:{x:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'M',font:{size:10},color:'#8a94b0'},grid:{color:'#f0f2f8'}},y:{ticks:{font:{size:10},color:'#4a5578'},grid:{display:false}}}}});
   const segs={};fp.filter(p=>!p.isDraft).forEach(p=>{segs[p.segment]=(segs[p.segment]||0)+p.venta;});
