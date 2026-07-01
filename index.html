@@ -383,6 +383,7 @@ textarea.fi{resize:none;min-height:60px;}
     <div class="content">
       <!-- RESUMEN -->
       <div class="page active" id="pg-resumen">
+        <div id="resDevWrap" style="display:none;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:12px;color:var(--text3)">Vista admin</span><button id="resDevBtn" class="btn btn-secondary btn-sm" onclick="toggleResDev()">&#9723; Incluir &quot;En desarrollo&quot;</button></div>
         <div class="kpi-row" id="kpiRow"></div>
         <div class="row2">
           <div class="panel"><div class="ph"><span class="ph-title">Venta mensual por propuesta enviada</span><span class="ph-sub">top 10 · KCLP</span></div><div class="pb"><div style="position:relative;height:270px"><canvas id="cBar"></canvas></div></div></div>
@@ -663,6 +664,7 @@ function mapSeg(seg,name=''){const s=(seg||'').toLowerCase(),n=name.toLowerCase(
 
 // ══ ESTADO ════════════════════════════════════════════════════
 let currentUser=null,projects=[],users=[],aprFolders=[],approvals={};
+let showEnDesarrollo=false;
 const charts={};
 function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 function num(n,d=0){return(+n||0).toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});}
@@ -796,6 +798,7 @@ function applyRole(){
   if(btnDraft) btnDraft.style.display=isAdmin()?'block':'none';
   const btnRecalc=document.getElementById('btnRecalc');
   if(btnRecalc) btnRecalc.style.display=isAdmin()?'block':'none';
+  const rdw=document.getElementById('resDevWrap'); if(rdw) rdw.style.display=isAdmin()?'flex':'none';
   if(!canEdit()) document.getElementById('crmHint').textContent='Solo lectura';
 }
 
@@ -853,22 +856,30 @@ function renderPage(id){
 function getFP(){const s=(document.getElementById('search')?.value||'').toLowerCase();const seg=document.getElementById('fSeg')?.value||'';return projects.filter(p=>(!s||p.name.toLowerCase().includes(s)||p.code.toLowerCase().includes(s))&&(!seg||p.segment===seg));}
 
 // ══ KPIs ══════════════════════════════════════════════════════
+function toggleResDev(){
+  showEnDesarrollo=!showEnDesarrollo;
+  const b=document.getElementById('resDevBtn');
+  if(b){b.textContent=(showEnDesarrollo?'\u2611':'\u25FB')+' Incluir "En desarrollo"';b.style.background=showEnDesarrollo?'var(--orange)':'';b.style.color=showEnDesarrollo?'#fff':'';b.style.borderColor=showEnDesarrollo?'var(--orange)':'';}
+  renderKPIs();renderResumen();
+}
 function renderKPIs(){
-  const fp=getFP().filter(p=>!p.isDraft&&p.stage==='Enviada');
+  const _stK=showEnDesarrollo?['Enviada','En desarrollo']:['Enviada'];
+  const fp=getFP().filter(p=>!p.isDraft&&_stK.includes(p.stage));
+  const suf=showEnDesarrollo?'propuestas (env.+desarr.)':'propuestas enviadas';
   const tv=fp.reduce((a,p)=>a+p.venta,0),tc=fp.reduce((a,p)=>a+p.costo,0);
   const mg=tv?((tv-tc)/tv*100):0,dot=fp.reduce((a,p)=>a+p.dot,0);
   const dr=projects.filter(p=>p.stage==='En desarrollo');
   document.getElementById('kpiRow').innerHTML=`
-    <div class="kpi k1"><div class="kpi-lbl">Venta total/mes</div><div class="kpi-val" style="color:var(--orange)">$${(tv/1000).toFixed(0)}M</div><div class="kpi-sub">KCLP · ${fp.length} propuestas enviadas</div></div>
-    <div class="kpi k2"><div class="kpi-lbl">Costo total/mes</div><div class="kpi-val">$${(tc/1000).toFixed(0)}M</div><div class="kpi-sub">KCLP · propuestas enviadas</div></div>
-    <div class="kpi k3"><div class="kpi-lbl">Margen ponderado</div><div class="kpi-val" style="color:var(--green)">${mg.toFixed(1)}%</div><div class="kpi-sub">$${((tv-tc)/1000).toFixed(0)}M/mes · propuestas enviadas</div></div>
-    <div class="kpi k4"><div class="kpi-lbl">Dotación total</div><div class="kpi-val" style="color:#1a6abf">${Math.round(dot)}</div><div class="kpi-sub">personas · propuestas enviadas</div></div>
+    <div class="kpi k1"><div class="kpi-lbl">Venta total/mes</div><div class="kpi-val" style="color:var(--orange)">$${(tv/1000).toFixed(0)}M</div><div class="kpi-sub">KCLP · ${fp.length} ${suf}</div></div>
+    <div class="kpi k2"><div class="kpi-lbl">Costo total/mes</div><div class="kpi-val">$${(tc/1000).toFixed(0)}M</div><div class="kpi-sub">KCLP · ${suf}</div></div>
+    <div class="kpi k3"><div class="kpi-lbl">Margen ponderado</div><div class="kpi-val" style="color:var(--green)">${mg.toFixed(1)}%</div><div class="kpi-sub">$${((tv-tc)/1000).toFixed(0)}M/mes · ${suf}</div></div>
+    <div class="kpi k4"><div class="kpi-lbl">Dotación total</div><div class="kpi-val" style="color:#1a6abf">${Math.round(dot)}</div><div class="kpi-sub">personas · ${suf}</div></div>
     <div class="kpi k5"><div class="kpi-lbl">En desarrollo</div><div class="kpi-val" style="font-size:20px;color:var(--red)">$${(dr.reduce((a,p)=>a+p.venta,0)/1000).toFixed(0)}M</div><div class="kpi-sub">${dr.length} en desarrollo</div></div>`;
 }
 
 // ══ RESUMEN ════════════════════════════════════════════════════
 function renderResumen(){
-  const fp=getFP().filter(p=>p.stage==='Enviada');
+  const fp=getFP().filter(p=>!p.isDraft&&(showEnDesarrollo?['Enviada','En desarrollo']:['Enviada']).includes(p.stage));
   const top=[...fp].sort((a,b)=>b.venta-a.venta).slice(0,10);
   dc('cBar');charts.cBar=new Chart(document.getElementById('cBar'),{type:'bar',data:{labels:top.map(p=>p.name.length>22?p.name.slice(0,22)+'…':p.name),datasets:[{data:top.map(p=>p.venta),backgroundColor:top.map(p=>SEG_COL[p.segment]||'#8a94b0'),borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.raw.toLocaleString('es-CL')} KCLP`}}},scales:{x:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'M',font:{size:10},color:'#8a94b0'},grid:{color:'#f0f2f8'}},y:{ticks:{font:{size:10},color:'#4a5578'},grid:{display:false}}}}});
   const segs={};fp.filter(p=>!p.isDraft).forEach(p=>{segs[p.segment]=(segs[p.segment]||0)+p.venta;});
@@ -1165,7 +1176,7 @@ function toggleAprDetail(){aprDetailOpen=!aprDetailOpen;document.getElementById(
 
 // ── Helper: construye el contenido de la celda de carpeta cruzando con propuestas comerciales
 function folderRowContent(f){
-  const p=projects.find(x=>x.id===f.id||x.code===f.code||x.name===f.name);
+  const p=projects.find(x=>x.id===f.id)||projects.find(x=>x.name===f.name)||projects.find(x=>x.code===f.code);
   const fichasTxt=(f.fichas||[]).length+' ficha'+((f.fichas||[]).length!==1?'s':'');
   if(!p) return '<div class="td-fn-in"><span style="font-size:16px">📁</span><div><div style="font-weight:700;color:var(--navy)">'+f.name+'</div><div style="font-size:10px;color:var(--text3)">'+f.code+' · '+fichasTxt+'</div></div><span class="f-tog" id="ft-'+f.id+'">▶</span></div>';
   var sc=SC[p.stage]||'#8a94b0';
