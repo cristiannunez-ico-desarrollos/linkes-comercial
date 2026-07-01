@@ -635,11 +635,11 @@ textarea.fi{resize:none;min-height:60px;}
 <script>
 // ══ API JSONP ══════════════════════════════════════════════════
 const API='https://script.google.com/macros/s/AKfycbyeOZ-3dQLS1rk74F9Ku9wxT4hYwGoeej4-DtqKPuhO7DGEkBbK3X-gpSo_R0EXDrvVUg/exec';
-function callRead(action,params={}){
+function callRead(action,params={},timeout=30000){
   return new Promise(resolve=>{
     const cb='lk_'+Date.now()+'_'+Math.floor(Math.random()*99999);
     const url=`${API}?${new URLSearchParams({action,...params,callback:cb,origin:window.location.hostname})}`;
-    const timer=setTimeout(()=>{cleanup();resolve({ok:false,error:'Timeout — verifica tu conexión'});},20000);
+    const timer=setTimeout(()=>{cleanup();resolve({ok:false,error:'Timeout — verifica tu conexión'});},timeout);
     function cleanup(){clearTimeout(timer);delete window[cb];document.getElementById(cb)?.remove();}
     window[cb]=data=>{cleanup();resolve(data);};
     const s=document.createElement('script');s.id=cb;s.src=url;
@@ -1730,7 +1730,7 @@ async function setAsig(fid,rol,uid){
 async function descargarFicha(fileId,el){
   const txt=el?el.innerHTML:'';if(el){el.style.pointerEvents='none';el.innerHTML='⏳ Descargando…';}
   try{
-    const res=await callRead('downloadFicha',{fileId,userId:currentUser.id});
+    const res=await callRead('downloadFicha',{fileId,userId:currentUser.id},60000);
     if(!res.ok){notify('⛔ '+(res.error||'No se pudo descargar'));return;}
     const bin=atob(res.base64),len=bin.length,bytes=new Uint8Array(len);
     for(let i=0;i<len;i++)bytes[i]=bin.charCodeAt(i);
