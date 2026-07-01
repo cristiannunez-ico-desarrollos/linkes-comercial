@@ -1730,7 +1730,7 @@ async function setAsig(fid,rol,uid){
 async function descargarFicha(fileId,el){
   const txt=el?el.innerHTML:'';if(el){el.style.pointerEvents='none';el.innerHTML='⏳ Descargando…';}
   try{
-    const res=await callRead('downloadFicha',{fileId});
+    const res=await callRead('downloadFicha',{fileId,userId:currentUser.id});
     if(!res.ok){notify('⛔ '+(res.error||'No se pudo descargar'));return;}
     const bin=atob(res.base64),len=bin.length,bytes=new Uint8Array(len);
     for(let i=0;i<len;i++)bytes[i]=bin.charCodeAt(i);
