@@ -1003,7 +1003,7 @@ if(oldTot){const tmp=document.createElement('tbody');tmp.innerHTML=totRow;const 
 // ══ CRM ════════════════════════════════════════════════════════
 let dragging=null;
 function renderCRM(){
-  const fp=projects;
+  const fp=getFP();   // respeta el segmentador (fSeg) igual que las demás vistas
   const byS={};STAGES.forEach(s=>byS[s]={venta:0,count:0,items:[]});
   fp.forEach(p=>{const s=p.stage||STAGES[0];if(byS[s]){byS[s].venta+=p.venta;byS[s].count++;byS[s].items.push(p);}});
   const tv=fp.reduce((a,p)=>a+p.venta,0);
