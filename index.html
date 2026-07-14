@@ -83,6 +83,10 @@ nav{flex:1;padding:6px 10px 14px;}
 .kpi.k1::after{background:var(--orange);}.kpi.k2::after{background:var(--navy);}
 .kpi.k3::after{background:var(--green);}.kpi.k4::after{background:#1a6abf;}
 .kpi.k5::after{background:var(--red);}
+.kpi.k6::after{background:#9b3fc8;}
+.kpi-row.ind6{grid-template-columns:repeat(6,1fr);}
+@media(max-width:1250px){.kpi-row.ind6{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:640px){.kpi-row.ind6{grid-template-columns:1fr 1fr;}}
 .kpi-lbl{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
 .kpi-val{font-family:var(--font-cond);font-size:26px;font-weight:700;color:var(--navy);line-height:1;}
 .kpi-sub{font-size:11px;color:var(--text3);margin-top:4px;}
@@ -148,6 +152,9 @@ table.apr thead th{background:var(--navy);color:#fff;padding:0;white-space:nowra
 .th-proy{text-align:left;padding:13px 15px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,0.65);min-width:210px;}
 .th-apr{text-align:center;padding:9px 8px;min-width:150px;}
 .th-apr-role{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:4px;margin-bottom:3px;display:inline-block;}
+.th-apr-etapa{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin-top:1px;}
+/* Fecha de aprobación oculta a nivel frontend — para volver a mostrarla, cambiar display:none por display:block */
+.apr-fecha{display:none;}
 .r-resp{background:rgba(26,106,191,.3);color:#7bb8ff;}.r-jefe{background:rgba(155,63,200,.3);color:#d4a0f7;}
 .r-gops{background:rgba(224,93,26,.3);color:#ffb07a;}.r-gg{background:rgba(200,34,46,.3);color:#ff9da3;}
 .tr-folder{background:var(--light);cursor:pointer;}
@@ -357,6 +364,7 @@ textarea.fi{resize:none;min-height:60px;}
       <div class="nav-sep"></div>
       <div class="nav-sec">Aprobaciones</div>
       <div class="nav-item" onclick="go('aprobaciones',this)"><span style="width:16px;text-align:center">✅</span>Matriz ISO 9001</div>
+      <div class="nav-item" onclick="go('indicadores',this)"><span style="width:16px;text-align:center">📈</span>Indicadores</div>
       <div class="nav-sep"></div>
       <div class="nav-item admin-only" onclick="go('admin',this)"><span style="width:16px;text-align:center">⚙</span>Administración</div>
     </nav>
@@ -505,6 +513,23 @@ textarea.fi{resize:none;min-height:60px;}
         <div class="panel"><div class="ph"><span class="ph-title">Distribución de plazos</span></div><div class="pb"><div style="position:relative;height:170px"><canvas id="cPlazos"></canvas></div></div></div>
       </div>
       <!-- APROBACIONES -->
+      <!-- INDICADORES SV01 -->
+      <div class="page" id="pg-indicadores">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div><div style="font-family:var(--font-cond);font-size:20px;font-weight:700;color:var(--navy)">Indicadores del proceso · Servicio de Estudio</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Según informe SV01 · ISO 9001:2015 · Planilla calidad estudios</div></div>
+          <div style="display:flex;align-items:center;gap:8px"><label style="font-size:12px;color:var(--text3)">Año</label><select class="fs" id="ind_year" style="width:auto" onchange="renderIndicadores()"></select></div>
+        </div>
+        <div class="kpi-row ind6" id="indKpis"></div>
+        <div class="row2">
+          <div class="panel"><div class="ph"><span class="ph-title">Requerimientos comerciales por mes</span><span class="ph-sub">recibidos vs finalizados · % finalización</span></div><div class="pb"><div style="position:relative;height:260px"><canvas id="cIndReq"></canvas></div></div></div>
+          <div class="panel"><div class="ph"><span class="ph-title">Estimación de costos mes · contratos en etapa de estudio</span><span class="ph-sub">KCLP/mes · etapa "En desarrollo"</span></div><div class="pb"><div style="position:relative;height:260px"><canvas id="cIndEst"></canvas></div></div></div>
+        </div>
+        <div class="row2">
+          <div class="panel"><div class="ph"><span class="ph-title">Costo real P2 · últimos contratos adjudicados</span><span class="ph-sub">KCLP/mes · valor de venta</span></div><div class="pb"><div style="position:relative;height:260px"><canvas id="cIndP2"></canvas></div></div></div>
+          <div class="panel"><div class="ph"><span class="ph-title">Precisión en la estimación de costos</span><span class="ph-sub">costo estimado vs costo real P2</span></div><div class="pb"><div style="position:relative;height:260px"><canvas id="cIndPrec"></canvas></div></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:2px">Indicadores 1–6 del proceso Servicio de Estudio (informe SV01) · Finalizado = ficha de estudio completa (no borrador) · P2 = valor de venta de la propuesta · Precisión = 100 − |P2 − costo estimado| / P2</div>
+      </div>
       <div class="page" id="pg-aprobaciones">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div><div style="font-family:var(--font-cond);font-size:20px;font-weight:700;color:var(--navy)">Matriz de aprobaciones</div><div style="font-size:11px;color:var(--text3);margin-top:2px" id="aprMeta"></div></div>
@@ -653,6 +678,7 @@ function callRead(action,params={},timeout=30000){
 const ROLES={admin:{label:'Administrador',color:'#555'},resp:{label:'Responsable de la Propuesta',color:'#1a6abf'},jefe:{label:'Jefe de la Propuesta',color:'#9b3fc8'},gops:{label:'Gerente/Subgerente de Operaciones',color:'#e05d1a'},gg:{label:'Gerente General',color:'#c8222e'},viewer:{label:'Solo lectura',color:'#8a94b0'}};
 const APR_ROLES=['resp','jefe','gops','gg'];
 const APR_TH={resp:'r-resp',jefe:'r-jefe',gops:'r-gops',gg:'r-gg'};
+const APR_ETAPAS={resp:'Prepara',jefe:'Revisa',gops:'Verifica',gg:'Valida'};
 const STAGES=['En desarrollo','Enviada','Adjudicada','No adjudicada','Perdida'];
 const ACTIVE_STAGES=['En desarrollo','Enviada'];
 const SC={'En desarrollo':'#1a6abf','Enviada':'#e8761e','Adjudicada':'#1ab87a','No adjudicada':'#f5a623','Perdida':'#e84949'};
@@ -831,10 +857,63 @@ async function reloadData(){
   setLoader(false);
 }
 
+// ══ INDICADORES SV01 · SERVICIO DE ESTUDIO ═══════════════════
+const IND_MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function indDate(p){if(!p.fecha_estudio)return null;const d=new Date(p.fecha_estudio);return isNaN(d)?null:d;}
+function renderIndicadores(){
+  const sel=document.getElementById('ind_year');if(!sel)return;
+  const years=[...new Set(projects.map(p=>{const d=indDate(p);return d?d.getFullYear():null;}).filter(y=>y))].sort();
+  const cur=new Date().getFullYear();
+  if(!years.length)years.push(cur);
+  const prev=sel.value?+sel.value:(years.includes(cur)?cur:years[years.length-1]);
+  sel.innerHTML=years.map(y=>`<option value="${y}"${y===prev?' selected':''}>${y}</option>`).join('');
+  const Y=+sel.value;
+  // ── 1-3: requerimientos recibidos / finalizados por mes (fecha_estudio) ──
+  const rec=Array(12).fill(0),fin=Array(12).fill(0);
+  projects.forEach(p=>{const d=indDate(p);if(!d||d.getFullYear()!==Y)return;rec[d.getMonth()]++;if(!p.isDraft)fin[d.getMonth()]++;});
+  const totRec=rec.reduce((a,b)=>a+b,0),totFin=fin.reduce((a,b)=>a+b,0);
+  const pctFin=totRec?+(totFin/totRec*100).toFixed(1):0;
+  // ── 4: estimación de costos mes de contratos en etapa de estudio (snapshot actual) ──
+  const enEst=projects.filter(p=>p.stage==='En desarrollo');
+  const costoEst=enEst.reduce((a,p)=>a+p.costo,0);
+  // ── 5-6: últimos contratos adjudicados · P2 = venta ──
+  const adj=projects.filter(p=>p.stage==='Adjudicada'&&p.venta>0).sort((a,b)=>(indDate(b)?.getTime()||0)-(indDate(a)?.getTime()||0));
+  const last=adj.slice(0,6);
+  const p2Tot=last.reduce((a,p)=>a+p.venta,0);
+  const precs=last.map(p=>Math.max(0,100-Math.abs(p.venta-p.costo)/p.venta*100));
+  const precProm=precs.length?+(precs.reduce((a,b)=>a+b,0)/precs.length).toFixed(1):0;
+  const $K=v=>'$'+Math.round(v).toLocaleString('es-CL');
+  document.getElementById('indKpis').innerHTML=`
+    <div class="kpi k1"><div class="kpi-lbl">1 · Req. recibidos</div><div class="kpi-val">${totRec}</div><div class="kpi-sub">${Y} · prom ${(totRec/12).toFixed(1)}/mes</div></div>
+    <div class="kpi k2"><div class="kpi-lbl">2 · Req. finalizados</div><div class="kpi-val">${totFin}</div><div class="kpi-sub">ficha de estudio completa</div></div>
+    <div class="kpi k3"><div class="kpi-lbl">3 · % finalizados</div><div class="kpi-val">${pctFin}%</div><div class="kpi-sub">${totFin} de ${totRec} requerimientos</div></div>
+    <div class="kpi k4"><div class="kpi-lbl">4 · Costos en estudio</div><div class="kpi-val">${$K(costoEst)}</div><div class="kpi-sub">KCLP/mes · ${enEst.length} contratos</div></div>
+    <div class="kpi k5"><div class="kpi-lbl">5 · Costo real P2</div><div class="kpi-val">${$K(p2Tot)}</div><div class="kpi-sub">últimos ${last.length} adjudicados · KCLP/mes</div></div>
+    <div class="kpi k6"><div class="kpi-lbl">6 · Precisión estimación</div><div class="kpi-val">${precProm}%</div><div class="kpi-sub">promedio últimos adjudicados</div></div>`;
+  // Gráfico 1-3: recibidos vs finalizados + % (línea)
+  dc('cIndReq');charts.cIndReq=new Chart(document.getElementById('cIndReq'),{data:{labels:IND_MESES,datasets:[
+    {type:'bar',label:'Recibidos',data:rec,backgroundColor:'#1a6abf99',borderColor:'#1a6abf',borderWidth:1,borderRadius:4,yAxisID:'y1'},
+    {type:'bar',label:'Finalizados',data:fin,backgroundColor:'#2d7d55cc',borderRadius:4,yAxisID:'y1'},
+    {type:'line',label:'% finalizados',data:rec.map((r,i)=>r?+(fin[i]/r*100).toFixed(0):null),borderColor:'#e8761e',backgroundColor:'#e8761e',tension:.3,spanGaps:true,yAxisID:'y2',pointRadius:3}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},color:'#4a5578',boxWidth:12}}},scales:{x:{ticks:{font:{size:10},color:'#8a94b0'},grid:{display:false}},y1:{beginAtZero:true,ticks:{precision:0,font:{size:10},color:'#8a94b0'},grid:{color:'#f0f2f8'}},y2:{position:'right',min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10},color:'#8a94b0'},grid:{display:false}}}}});
+  // Gráfico 4: costo mensual por contrato en estudio
+  const est=enEst.slice().sort((a,b)=>b.costo-a.costo).slice(0,10);
+  dc('cIndEst');charts.cIndEst=new Chart(document.getElementById('cIndEst'),{type:'bar',data:{labels:est.map(p=>p.name.length>22?p.name.slice(0,22)+'…':p.name),datasets:[{data:est.map(p=>p.costo),backgroundColor:est.map(p=>(SEG_COL[p.segment]||'#8a94b0')+'cc'),borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.raw.toLocaleString('es-CL')} KCLP/mes`}}},scales:{x:{ticks:{callback:v=>'$'+(v/1000).toFixed(1)+'M',font:{size:10},color:'#8a94b0'},grid:{color:'#f0f2f8'}},y:{ticks:{font:{size:10},color:'#4a5578'},grid:{display:false}}}}});
+  // Gráfico 5: P2 (venta) últimos adjudicados
+  const cron=last.slice().reverse();
+  dc('cIndP2');charts.cIndP2=new Chart(document.getElementById('cIndP2'),{type:'bar',data:{labels:cron.map(p=>p.name.length>18?p.name.slice(0,18)+'…':p.name),datasets:[{data:cron.map(p=>p.venta),backgroundColor:'#2d7d55cc',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` P2: $${c.raw.toLocaleString('es-CL')} KCLP/mes`}}},scales:{x:{ticks:{font:{size:9},maxRotation:45,color:'#4a5578'},grid:{display:false}},y:{ticks:{callback:v=>'$'+(v/1000).toFixed(1)+'M',font:{size:10},color:'#8a94b0'},grid:{color:'#f0f2f8'}}}}});
+  // Gráfico 6: costo estimado vs P2 + precisión
+  dc('cIndPrec');charts.cIndPrec=new Chart(document.getElementById('cIndPrec'),{data:{labels:cron.map(p=>p.name.length>18?p.name.slice(0,18)+'…':p.name),datasets:[
+    {type:'bar',label:'Costo estimado',data:cron.map(p=>p.costo),backgroundColor:'#1a2847cc',borderRadius:4,yAxisID:'y1'},
+    {type:'bar',label:'Costo real P2 (venta)',data:cron.map(p=>p.venta),backgroundColor:'#e8761ecc',borderRadius:4,yAxisID:'y1'},
+    {type:'line',label:'Precisión %',data:cron.map(p=>+Math.max(0,100-Math.abs(p.venta-p.costo)/p.venta*100).toFixed(1)),borderColor:'#2d7d55',backgroundColor:'#2d7d55',tension:.3,yAxisID:'y2',pointRadius:3}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},color:'#4a5578',boxWidth:12}}},scales:{x:{ticks:{font:{size:9},maxRotation:45,color:'#4a5578'},grid:{display:false}},y1:{ticks:{callback:v=>'$'+(v/1000).toFixed(1)+'M',font:{size:10},color:'#8a94b0'},grid:{color:'#f0f2f8'}},y2:{position:'right',min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10},color:'#8a94b0'},grid:{display:false}}}}});
+}
+
 // ══ NAV ═══════════════════════════════════════════════════════
-const TITLES={resumen:'Resumen ejecutivo',proyectos:'Todas las propuestas',crm:'Ciclo Comercial',ratios:'Ratios de costo',aprobaciones:'Matriz de aprobaciones ISO 9001',admin:'Administración'};
+const TITLES={resumen:'Resumen ejecutivo',proyectos:'Todas las propuestas',crm:'Ciclo Comercial',ratios:'Ratios de costo',aprobaciones:'Matriz de aprobaciones ISO 9001',indicadores:'Indicadores · Servicio de Estudio',admin:'Administración'};
 let curPage='resumen';
-function go(id,el){document.querySelectorAll('.mob-bottomnav button').forEach(b=>b.classList.remove('active'));const mbn=document.getElementById('mbn-'+id);if(mbn)mbn.classList.add('active');const titles={resumen:'Resumen',proyectos:'Detalle propuestas',crm:'Ciclo Comercial',ratios:'Ratios de costo',aprobaciones:'Matriz ISO 9001',admin:'Administración'};const mt=document.getElementById('mobTitle');if(mt)mt.textContent=titles[id]||'';
+function go(id,el){document.querySelectorAll('.mob-bottomnav button').forEach(b=>b.classList.remove('active'));const mbn=document.getElementById('mbn-'+id);if(mbn)mbn.classList.add('active');const titles={resumen:'Resumen',proyectos:'Detalle propuestas',crm:'Ciclo Comercial',ratios:'Ratios de costo',aprobaciones:'Matriz ISO 9001',indicadores:'Indicadores',admin:'Administración'};const mt=document.getElementById('mobTitle');if(mt)mt.textContent=titles[id]||'';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('pg-'+id);if(pg)pg.classList.add('active');
@@ -851,6 +930,7 @@ function renderPage(id){
   else if(id==='crm')renderCRM();
   else if(id==='ratios')renderRatios();
   else if(id==='aprobaciones')renderAprobaciones();
+  else if(id==='indicadores')renderIndicadores();
   else if(id==='admin'){renderUserList();renderFolderList();renderAsigContent();renderAuditList();}
 }
 function getFP(){const s=(document.getElementById('search')?.value||'').toLowerCase();const seg=document.getElementById('fSeg')?.value||'';return projects.filter(p=>(!s||p.name.toLowerCase().includes(s)||p.code.toLowerCase().includes(s))&&(!seg||p.segment===seg));}
@@ -1207,7 +1287,7 @@ function renderAprobaciones(){
 
   if(!aprFolders.length){document.getElementById('aprHead').innerHTML='';document.getElementById('aprBody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">Sin carpetas. Se crean automáticamente al cargar fichas .xlsm.</td></tr>';return;}
 
-  document.getElementById('aprHead').innerHTML=`<tr><th class="th-proy">Carpeta / Ficha</th>${APR_ROLES.map(r=>`<th class="th-apr"><span class="th-apr-role ${APR_TH[r]}">${ROLES[r]?.label}</span></th>`).join('')}</tr>`;
+  document.getElementById('aprHead').innerHTML=`<tr><th class="th-proy">Carpeta / Ficha</th>${APR_ROLES.map(r=>`<th class="th-apr"><span class="th-apr-role ${APR_TH[r]}">${ROLES[r]?.label}</span><div class="th-apr-etapa">${APR_ETAPAS[r]}</div></th>`).join('')}</tr>`;
 
   let body='';
   aprFolders.forEach(f=>{
@@ -1258,7 +1338,7 @@ function renderAprobaciones(){
         dHtml+=`<div style="border-radius:8px;padding:12px;border:1px solid ${apr?'var(--green)':'var(--border)'};background:${apr?'var(--green2)':'var(--light)'}">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:${rc};margin-bottom:3px">${ROLES[r]?.label}</div>
           <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">${aUser?aUser.name:'Sin asignar'}</div>
-          ${apr?`<div style="font-size:11px;font-weight:600;color:var(--green)">✓ Aprobado</div><div style="font-size:10px;color:var(--text3)">${apr.date} ${apr.time||''}</div>`:`<div style="font-size:11px;color:var(--text3)">Pendiente</div>`}
+          ${apr?`<div style="font-size:11px;font-weight:600;color:var(--green)">✓ Aprobado</div><div class="apr-fecha" style="font-size:10px;color:var(--text3)">${apr.date} ${apr.time||''}</div>`:`<div style="font-size:11px;color:var(--text3)">Pendiente</div>`}
         </div>`;
       });
       dHtml+=`</div></div>`;
@@ -1276,7 +1356,7 @@ function prevAprobados(asig,keyPrefix,rol){
 function renderChkCell(fid,fichaId,rol,apr,aUser,canApr,label,blocked){
   const lbl=label.replace(/'/g,"\\'");
   if(!aUser)return`<div style="font-size:10px;color:var(--text3)">Sin asignar</div>`;
-  if(apr)return`<div class="chk done" title="Aprobado por ${apr.name}"></div><div class="chk-meta"><div style="font-weight:600;color:var(--text2)">${apr.name.split(' ')[0]}</div><div>${apr.date}</div></div>`;
+  if(apr)return`<div class="chk done" title="Aprobado por ${apr.name} · ${apr.date}"></div><div class="chk-meta"><div style="font-weight:600;color:var(--text2)">${apr.name.split(' ')[0]}</div><div class="apr-fecha">${apr.date}</div></div>`;
   if(canApr)return`<div class="chk" style="border-color:var(--orange)" onclick="openConfirm('${fid}','${fichaId}','${rol}','${lbl}')"></div><div class="chk-meta" style="color:var(--orange);font-weight:600">Tu firma</div>`;
   if(blocked)return`<div class="chk locked" title="Debe aprobar primero el nivel anterior"></div><div class="chk-meta" style="color:var(--text3)">⏳ Espera nivel previo</div>`;
   return`<div class="chk locked" title="${aUser.name} — pendiente"></div><div class="chk-meta">${aUser.name.split(' ')[0]}</div>`;
@@ -1802,6 +1882,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
   <button onclick="go('crm',this)" id="mbn-crm"><span class="ico">◑</span>Ciclo</button>
   <button onclick="go('ratios',this)" id="mbn-ratios"><span class="ico">📊</span>Ratios</button>
   <button onclick="go('aprobaciones',this)" id="mbn-aprobaciones"><span class="ico">✅</span>ISO 9001</button>
+  <button onclick="go('indicadores',this)" id="mbn-indicadores"><span class="ico">📈</span>KPIs</button>
 </div>
 </body>
 </html>
