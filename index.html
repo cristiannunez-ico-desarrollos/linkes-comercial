@@ -156,7 +156,7 @@ table.apr thead th{background:var(--navy);color:#fff;padding:0;white-space:nowra
 /* Fecha de aprobación oculta a nivel frontend — para volver a mostrarla, cambiar display:none por display:block */
 .apr-fecha{display:none;}
 .r-resp{background:rgba(26,106,191,.3);color:#7bb8ff;}.r-jefe{background:rgba(155,63,200,.3);color:#d4a0f7;}
-.r-gops{background:rgba(224,93,26,.3);color:#ffb07a;}.r-gg{background:rgba(200,34,46,.3);color:#ff9da3;}
+.r-gops{background:rgba(224,93,26,.3);color:#ffb07a;}.r-gg{background:rgba(200,34,46,.3);color:#ff9da3;}.r-fin{background:rgba(14,138,122,.3);color:#7ce8d8;}
 .tr-folder{background:var(--light);cursor:pointer;}
 .tr-folder:hover td{background:var(--light2);}
 .td-fn{padding:11px 15px;}
@@ -558,7 +558,7 @@ textarea.fi{resize:none;min-height:60px;}
               <div class="fg" style="flex:1;min-width:130px"><label class="fl">Nombre</label><input class="fi" id="nu_name" placeholder="Nombre completo"></div>
               <div class="fg" style="flex:0 0 120px"><label class="fl">Usuario</label><input class="fi" id="nu_user" placeholder="usuario"></div>
               <div class="fg" style="flex:0 0 110px"><label class="fl">Contraseña</label><input class="fi" type="password" id="nu_pass" placeholder="••••••"></div>
-              <div class="fg" style="flex:1;min-width:160px"><label class="fl">Rol</label><select class="fs" id="nu_rol"><option value="admin">Administrador</option><option value="resp">Responsable Propuesta</option><option value="jefe">Jefe Propuesta</option><option value="gops">Gerente Operaciones</option><option value="gg">Gerente General</option><option value="viewer">Solo lectura</option></select></div>
+              <div class="fg" style="flex:1;min-width:160px"><label class="fl">Rol</label><select class="fs" id="nu_rol"><option value="admin">Administrador</option><option value="resp">Responsable Propuesta</option><option value="jefe">Jefe Propuesta</option><option value="gops">Gerente Operaciones</option><option value="gg">Gerente General</option><option value="fin">Gerente Finanzas</option><option value="viewer">Solo lectura</option></select></div>
               <button class="btn btn-primary btn-sm" onclick="addUser()">+ Agregar</button>
             </div>
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:-4px 0 14px 2px">
@@ -614,7 +614,7 @@ textarea.fi{resize:none;min-height:60px;}
   <div class="modal" style="max-width:440px"><div class="mhd"><div class="mhd-title">Editar usuario</div><button class="mclose" onclick="document.getElementById('editUserBg').classList.remove('open')">✕</button></div>
   <div class="mbody"><input type="hidden" id="eu_id">
     <div class="fr2"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="eu_name"></div><div class="fg"><label class="fl">Usuario</label><input class="fi" id="eu_user"></div></div>
-    <div class="fr2"><div class="fg"><label class="fl">Nueva contraseña</label><input class="fi" type="password" id="eu_pass" placeholder="vacío = sin cambio"></div><div class="fg"><label class="fl">Rol</label><select class="fs" id="eu_rol"><option value="admin">Administrador</option><option value="resp">Responsable Propuesta</option><option value="jefe">Jefe Propuesta</option><option value="gops">Gerente Operaciones</option><option value="gg">Gerente General</option><option value="viewer">Solo lectura</option></select></div></div>
+    <div class="fr2"><div class="fg"><label class="fl">Nueva contraseña</label><input class="fi" type="password" id="eu_pass" placeholder="vacío = sin cambio"></div><div class="fg"><label class="fl">Rol</label><select class="fs" id="eu_rol"><option value="admin">Administrador</option><option value="resp">Responsable Propuesta</option><option value="jefe">Jefe Propuesta</option><option value="gops">Gerente Operaciones</option><option value="gg">Gerente General</option><option value="fin">Gerente Finanzas</option><option value="viewer">Solo lectura</option></select></div></div>
     <div class="fg"><label class="fl">Roles de aprobación adicionales</label>
       <div style="display:flex;gap:16px;flex-wrap:wrap;padding-top:5px">
         <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="eu_extra_resp"> Responsable</label>
@@ -675,10 +675,12 @@ function callRead(action,params={},timeout=30000){
 }
 
 // ══ CONSTANTES ════════════════════════════════════════════════
-const ROLES={admin:{label:'Administrador',color:'#555'},resp:{label:'Responsable de la Propuesta',color:'#1a6abf'},jefe:{label:'Jefe de la Propuesta',color:'#9b3fc8'},gops:{label:'Gerente/Subgerente de Operaciones',color:'#e05d1a'},gg:{label:'Gerente General',color:'#c8222e'},viewer:{label:'Solo lectura',color:'#8a94b0'}};
-const APR_ROLES=['resp','jefe','gops','gg'];
-const APR_TH={resp:'r-resp',jefe:'r-jefe',gops:'r-gops',gg:'r-gg'};
-const APR_ETAPAS={resp:'Prepara',jefe:'Revisa',gops:'Verifica',gg:'Valida'};
+const ROLES={admin:{label:'Administrador',color:'#555'},resp:{label:'Responsable de la Propuesta',color:'#1a6abf'},jefe:{label:'Jefe de la Propuesta',color:'#9b3fc8'},gops:{label:'Gerente/Subgerente de Operaciones',color:'#e05d1a'},gg:{label:'Gerente General',color:'#c8222e'},fin:{label:'Gerente de Finanzas',color:'#0e8a7a'},viewer:{label:'Solo lectura',color:'#8a94b0'}};
+const APR_ROLES=['resp','jefe','gops','gg','fin'];
+const APR_TH={resp:'r-resp',jefe:'r-jefe',gops:'r-gops',gg:'r-gg',fin:'r-fin'};
+const APR_ETAPAS={resp:'Prepara',jefe:'Revisa',gops:'Verifica',gg:'Valida',fin:'Valida'};
+// Rol 'fin' es OPCIONAL: solo se exige cuando está asignado en la carpeta (proyectos ≥10% cifra de negocio anual)
+const rolesReq=f=>APR_ROLES.filter(r=>r!=='fin'||((f&&f.asignaciones)||{})[r]);
 const STAGES=['En desarrollo','Enviada','Adjudicada','No adjudicada','Perdida'];
 const ACTIVE_STAGES=['En desarrollo','Enviada'];
 const SC={'En desarrollo':'#1a6abf','Enviada':'#e8761e','Adjudicada':'#1ab87a','No adjudicada':'#f5a623','Perdida':'#e84949'};
@@ -1256,7 +1258,7 @@ function toggleAprDetail(){aprDetailOpen=!aprDetailOpen;document.getElementById(
 // ── Helper: construye el contenido de la celda de carpeta cruzando con propuestas comerciales
 function folderRowContent(f){
   const p=projects.find(x=>x.id===f.id)||projects.find(x=>x.name===f.name)||projects.find(x=>x.code===f.code);
-  const fichasTxt=(f.fichas||[]).length+' ficha'+((f.fichas||[]).length!==1?'s':'');
+  const nfi=fichasReales(f).length;const fichasTxt=nfi+' ficha'+(nfi!==1?'s':'');
   if(!p) return '<div class="td-fn-in"><span style="font-size:16px">📁</span><div><div style="font-weight:700;color:var(--navy)">'+f.name+'</div><div style="font-size:10px;color:var(--text3)">'+f.code+' · '+fichasTxt+'</div></div><span class="f-tog" id="ft-'+f.id+'">▶</span></div>';
   var sc=SC[p.stage]||'#8a94b0';
   var segC=SEG_COL[p.segment]||'#8a94b0';
@@ -1273,24 +1275,39 @@ function folderRowContent(f){
     +'<span class="f-tog" id="ft-'+f.id+'">▶</span></div>';
 }
 
+// ── Filtro flujo de aprobación ────────────────────────────────
+// Una carpeta entra al flujo SOLO si tiene ≥1 ficha .xlsm realmente cargada
+// (con fileId) y su propuesta comercial existe y no es borrador.
+// Esto excluye: (a) borradores sin ficha, (b) propuestas/fichas eliminadas
+// de la plataforma (carpeta huérfana). Sin tocar backend.
+function fichasReales(f){return (f.fichas||[]).filter(fi=>fi&&fi.fileId);}
+function esFolderActivo(f){
+  if(!fichasReales(f).length) return false;      // sin ficha .xlsm cargada (borradores incluidos)
+  const p=projects.find(x=>x.id===f.id);
+  if(!p) return false;                            // propuesta eliminada de la plataforma
+  return !p.isDraft;                              // borradores fuera del flujo
+}
+function foldersAprob(){return aprFolders.filter(esFolderActivo);}
+
 function renderAprobaciones(){
-  const total=aprFolders.length;
-  const completas=aprFolders.filter(f=>APR_ROLES.every(r=>approvals[`${f.id}_folder_${r}`])).length;
-  const parciales=aprFolders.filter(f=>{const c=APR_ROLES.filter(r=>approvals[`${f.id}_folder_${r}`]).length;return c>0&&c<4;}).length;
-  const pendientes=aprFolders.filter(f=>APR_ROLES.every(r=>!approvals[`${f.id}_folder_${r}`])).length;
+  const FL=foldersAprob();
+  const total=FL.length;
+  const completas=FL.filter(f=>rolesReq(f).every(r=>approvals[`${f.id}_folder_${r}`])).length;
+  const parciales=FL.filter(f=>{const req=rolesReq(f),c=req.filter(r=>approvals[`${f.id}_folder_${r}`]).length;return c>0&&c<req.length;}).length;
+  const pendientes=FL.filter(f=>rolesReq(f).every(r=>!approvals[`${f.id}_folder_${r}`])).length;
   document.getElementById('aprKpis').innerHTML=`
-    <div class="kpi k2"><div class="kpi-lbl">Total carpetas</div><div class="kpi-val">${total}</div><div class="kpi-sub">${aprFolders.reduce((a,f)=>a+(f.fichas?.length||0),0)} fichas</div></div>
-    <div class="kpi k3"><div class="kpi-lbl">Completamente aprobadas</div><div class="kpi-val" style="color:var(--green)">${completas}</div><div class="kpi-sub">4 de 4 aprobadores</div></div>
+    <div class="kpi k2"><div class="kpi-lbl">Total carpetas</div><div class="kpi-val">${total}</div><div class="kpi-sub">${FL.reduce((a,f)=>a+fichasReales(f).length,0)} fichas</div></div>
+    <div class="kpi k3"><div class="kpi-lbl">Completamente aprobadas</div><div class="kpi-val" style="color:var(--green)">${completas}</div><div class="kpi-sub">Todos los niveles asignados</div></div>
     <div class="kpi k1"><div class="kpi-lbl">Aprobación parcial</div><div class="kpi-val" style="color:var(--orange)">${parciales}</div><div class="kpi-sub">Al menos 1 firmado</div></div>
     <div class="kpi k5"><div class="kpi-lbl">Sin aprobar</div><div class="kpi-val" style="color:var(--red)">${pendientes}</div><div class="kpi-sub">Ningún aprobador aún</div></div>`;
-  document.getElementById('aprMeta').textContent=`${total} carpetas · ${Object.keys(approvals).length} aprobaciones en Google Sheets ☁`;
+  document.getElementById('aprMeta').textContent=`${total} carpetas activas · ${Object.keys(approvals).length} aprobaciones en Google Sheets ☁`;
 
-  if(!aprFolders.length){document.getElementById('aprHead').innerHTML='';document.getElementById('aprBody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">Sin carpetas. Se crean automáticamente al cargar fichas .xlsm.</td></tr>';return;}
+  if(!FL.length){document.getElementById('aprHead').innerHTML='';document.getElementById('aprBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">Sin propuestas en el flujo. Aparecen aquí al cargar una ficha .xlsm (los borradores y las fichas eliminadas no se incluyen).</td></tr>';return;}
 
   document.getElementById('aprHead').innerHTML=`<tr><th class="th-proy">Carpeta / Ficha</th>${APR_ROLES.map(r=>`<th class="th-apr"><span class="th-apr-role ${APR_TH[r]}">${ROLES[r]?.label}</span><div class="th-apr-etapa">${APR_ETAPAS[r]}</div></th>`).join('')}</tr>`;
 
   let body='';
-  aprFolders.forEach(f=>{
+  FL.forEach(f=>{
     const asig=f.asignaciones||{};
     body+=`<tr class="tr-folder" onclick="toggleAprFolder('${f.id}')">
       <td class="td-fn">${folderRowContent(f)}</td>`;
@@ -1302,7 +1319,7 @@ function renderAprobaciones(){
       body+=`<td class="td-chk">${renderChkCell(f.id,'folder',r,apr,aUser,canApr,f.name,blocked)}</td>`;
     });
     body+='</tr>';
-    (f.fichas||[]).forEach(fi=>{
+    fichasReales(f).forEach(fi=>{
       const puedeDescargar=isAdmin()||APR_ROLES.some(r=>asig[r]===currentUser.id);
       const dlBtn=(fi.fileId&&puedeDescargar)
         ?`<a href="javascript:void(0)" onclick="descargarFicha('${fi.fileId}',this);return false" style="display:inline-flex;align-items:center;gap:4px;background:#e8f0fb;color:#1a6abf;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;text-decoration:none;margin-left:6px" title="Descargar ${fi.fileName||fi.name}">⬇ Descargar</a>`
@@ -1322,16 +1339,17 @@ function renderAprobaciones(){
 
   if(aprDetailOpen){
     let dHtml='';
-    aprFolders.forEach(f=>{
+    FL.forEach(f=>{
       const asig=f.asignaciones||{};
-      const done=APR_ROLES.filter(r=>approvals[`${f.id}_folder_${r}`]).length;
-      const bcls=done===4?'color:#1a7a52;background:var(--green2)':done>0?'color:#c25c0a;background:#fef0e3':'color:#b83030;background:#fce8e8';
+      const req=rolesReq(f);
+      const done=req.filter(r=>approvals[`${f.id}_folder_${r}`]).length;
+      const bcls=done===req.length?'color:#1a7a52;background:var(--green2)':done>0?'color:#c25c0a;background:#fef0e3':'color:#b83030;background:#fce8e8';
       dHtml+=`<div style="margin-bottom:14px;background:#fff;border-radius:var(--r);padding:14px;border:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:13px;font-weight:700;color:var(--navy)">${f.name} <span style="font-weight:400;font-size:11px;color:var(--text3)">${f.code}</span></div>
-          <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;${bcls}">${done===4?'Completo':done>0?`${done}/4`:'Pendiente'}</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;${bcls}">${done===req.length?'Completo':done>0?`${done}/${req.length}`:'Pendiente'}</span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">`;
+        <div style="display:grid;grid-template-columns:repeat(${APR_ROLES.length},1fr);gap:8px">`;
       APR_ROLES.forEach(r=>{
         const apr=approvals[`${f.id}_folder_${r}`],aUser=users.find(u=>u.id===asig[r]);
         const rc=ROLES[r]?.color;
@@ -1355,7 +1373,7 @@ function prevAprobados(asig,keyPrefix,rol){
 }
 function renderChkCell(fid,fichaId,rol,apr,aUser,canApr,label,blocked){
   const lbl=label.replace(/'/g,"\\'");
-  if(!aUser)return`<div style="font-size:10px;color:var(--text3)">Sin asignar</div>`;
+  if(!aUser)return rol==='fin'?`<div style="font-size:10px;color:var(--text3)" title="Aprobación de Finanzas: se activa asignando aprobador (proyectos ≥10% cifra de negocio anual)">No requerida</div>`:`<div style="font-size:10px;color:var(--text3)">Sin asignar</div>`;
   if(apr)return`<div class="chk done" title="Aprobado por ${apr.name} · ${apr.date}"></div><div class="chk-meta"><div style="font-weight:600;color:var(--text2)">${apr.name.split(' ')[0]}</div><div class="apr-fecha">${apr.date}</div></div>`;
   if(canApr)return`<div class="chk" style="border-color:var(--orange)" onclick="openConfirm('${fid}','${fichaId}','${rol}','${lbl}')"></div><div class="chk-meta" style="color:var(--orange);font-weight:600">Tu firma</div>`;
   if(blocked)return`<div class="chk locked" title="Debe aprobar primero el nivel anterior"></div><div class="chk-meta" style="color:var(--text3)">⏳ Espera nivel previo</div>`;
@@ -1399,13 +1417,15 @@ async function doApprove(){
 function openProjModal(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
   const b=calcBoleta(p),sc=SC[p.stage]||'#8a94b0';
-  const aprFolder=aprFolders.find(f=>f.id===id);
-  const aprDone=aprFolder?APR_ROLES.filter(r=>approvals[`${id}_folder_${r}`]).length:0;
+  const aprFolder=aprFolders.find(f=>f.id===id&&esFolderActivo(f));
+  const aprReq=aprFolder?rolesReq(aprFolder):APR_ROLES.slice(0,4);
+  const aprDone=aprFolder?aprReq.filter(r=>approvals[`${id}_folder_${r}`]).length:0;
+  const aprFull=aprFolder?aprDone===aprReq.length:false;
   document.getElementById('projTitle').textContent=p.name;
   document.getElementById('projBody').innerHTML=`
     ${p.isDraft?'<div style="background:#f0ebff;border:1px solid #c4aaff;border-radius:8px;padding:10px 13px;font-size:12px;color:#6b3fc4;margin-bottom:12px">◦ Propuesta preliminar en estudio</div>':''}
-    ${aprFolder?`<div style="background:${aprDone===4?'var(--green2)':aprDone>0?'#fef0e3':'#fce8e8'};border:1px solid ${aprDone===4?'var(--green)':aprDone>0?'#fad5b0':'#f5b8b8'};border-radius:8px;padding:10px 14px;font-size:12px;color:${aprDone===4?'#1a7a52':aprDone>0?'#7a3d0a':'#7a1a1a'};margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-      <span>✅ Aprobación ISO 9001: ${aprDone===4?'Completamente aprobado':aprDone>0?`${aprDone}/4 aprobadores`:'Pendiente de aprobación'}</span>
+    ${aprFolder?`<div style="background:${aprFull?'var(--green2)':aprDone>0?'#fef0e3':'#fce8e8'};border:1px solid ${aprFull?'var(--green)':aprDone>0?'#fad5b0':'#f5b8b8'};border-radius:8px;padding:10px 14px;font-size:12px;color:${aprFull?'#1a7a52':aprDone>0?'#7a3d0a':'#7a1a1a'};margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+      <span>✅ Aprobación ISO 9001: ${aprFull?'Completamente aprobado':aprDone>0?`${aprDone}/${aprReq.length} aprobadores`:'Pendiente de aprobación'}</span>
       <button class="btn btn-secondary btn-sm" onclick="go('aprobaciones');document.getElementById('projBg').classList.remove('open')">Ver matriz</button>
     </div>`:''}
     <div class="msec">Identificación</div>
